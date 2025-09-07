@@ -1,0 +1,37 @@
+# 敏感配置文件 - 包含 Google Apps Script URL 和 Google Sheets ID
+src/config/config.js
+
+# Google Apps Script 原始文件 - 包含敏感的 Sheets ID
+backend/google-apps-script.js
+
+# 系統文件
+.DS_Store
+Thumbs.db
+
+# 編輯器配置
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 日誌文件
+*.log
+
+# 臨時文件
+*.tmp
+*.temp
+
+# 備份文件
+*.bak
+*.backup
+
+# Node.js (如果未來使用)
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# 環境變數文件
+.env
+.env.local
+.env.production

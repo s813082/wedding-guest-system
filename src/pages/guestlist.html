@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Guest List - Enchanted Check-In</title>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Newsreader%3Awght%40400%3B500%3B700%3B800&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="../config/config.js"></script>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style type="text/tailwindcss">
+        :root {
+            --primary-color: #1791cf;
+            --secondary-color: #f0f3f4;
+            --text-color: #111518;
+            --background-color: #f3e9d8;
+            --accent-color: #e0f7fa;
+            --subtle-border: #e0e0e0;
+            --checked-in-bg: #e8f5e9;
+            --unchecked-bg: #ffffff;
+            --checked-in-text: #2e7d32;
+            --unchecked-text: #111518;
+        }
+        body {
+            font-family: 'Newsreader', 'Noto Sans', sans-serif;
+        }
+        .checkbox-custom {
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid var(--subtle-border);
+            border-radius: 0.375rem;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease-in-out;
+            background-color: transparent;
+        }
+        .checkbox-custom:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .checkbox-custom:checked::after {
+            content: "✔";
+            color: white;
+            font-size: 0.8rem;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: bold;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-primary:hover {
+            background-color: #147ab3;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .magic-wand-icon {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 20px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+        .table-header {
+             color: #ffffff;
+             font-weight: 700;
+             padding: 1rem 1.5rem;
+             text-align: left;
+             font-size: 0.875rem;
+             text-transform: uppercase;
+             letter-spacing: 0.05em;
+        }
+        .table-cell {
+            padding: 1rem 1.5rem;
+            white-space: nowrap;
+        }
+        .checked-in-row {
+            background-color: var(--checked-in-bg);
+            color: var(--checked-in-text);
+        }
+         .checked-in-row .checkbox-custom {
+            border-color: #a5d6a7;
+        }
+        .unchecked-row {
+            background-color: var(--unchecked-bg);
+            color: var(--unchecked-text);
+        }
+        .unchecked-row .checkbox-custom {
+             border-color: #e0e0e0;
+        }
+    </style>
+</head>
+<body class="bg-[var(--background-color)]">
+<div class="relative flex size-full min-h-screen flex-col group/design-root overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-[var(--subtle-border)] bg-white px-10 py-4 shadow-sm">
+<div class="flex items-center gap-3 text-[var(--text-color)]">
+<span class="material-symbols-outlined text-3xl text-[var(--primary-color)]">auto_stories</span>
+<h1 class="text-xl font-bold leading-tight tracking-[-0.015em]">Enchanted Check-In</h1>
+</div>
+<div class="flex flex-1 justify-end gap-6">
+<nav class="flex items-center gap-8">
+<a class="text-sm font-medium text-[var(--text-color)] hover:text-[var(--primary-color)] transition-colors" href="#">Dashboard</a>
+<a class="text-sm font-medium text-[var(--primary-color)] font-semibold" href="#">Guests</a>
+<a class="text-sm font-medium text-[var(--text-color)] hover:text-[var(--primary-color)] transition-colors" href="#">Tables</a>
+<a class="text-sm font-medium text-[var(--text-color)] hover:text-[var(--primary-color)] transition-colors" href="#">Gifts</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="flex size-10 cursor-pointer items-center justify-center rounded-full bg-[var(--secondary-color)] text-[var(--text-color)] transition-colors hover:bg-gray-200">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-white shadow-md" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAzoLzGX5LzjT3jrnVLh1olWlJv05hkIF-_4qpqB7r3vt_6DxQoFKqlER0FwQC8_ovDJtJbJNrZKOnh1hSVs9rwgpEToPlx8yQDXhBy17Fc1d-_dRUvIy-CidFexPgY3FqRWoR3TCzU1oV7tMiWTH625DSiyPEc8dJhUu3q22m088UVWfE_haSPGhm5-fsXAEZ-bX5n2WAEFT8WFsOtMsZFRTQiR7v199fv3ph7Is0BX9mm05BO0wDLmkKqMKlWATVFEsluPKaILAk");'></div>
+</div>
+</div>
+</header>
+<main class="flex-1 p-6 sm:p-10">
+<div class="mx-auto max-w-7xl">
+<div class="flex items-center justify-between mb-8">
+<h2 class="text-3xl font-bold text-[var(--text-color)] tracking-tight">Guest List</h2>
+<button class="btn-primary" type="button">
+<span class="material-symbols-outlined text-lg">person_add</span> Add New Guest
+            </button>
+</div>
+<div class="bg-white rounded-2xl shadow-lg border border-[var(--subtle-border)] overflow-hidden">
+<!-- 搜尋欄位 -->
+<div class="p-6 border-b border-[var(--subtle-border)]">
+<div class="relative max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">search</span>
+<input type="text" id="search-input" placeholder="搜尋編號或姓名..." 
+       class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent outline-none transition-all">
+<button id="clear-search" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 hidden">
+<span class="material-symbols-outlined text-lg">close</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-sm">
+<thead class="bg-gray-800">
+<tr>
+<th class="table-header">S/N</th>
+<th class="table-header">Guest Name</th>
+<th class="table-header text-center">Collect Gift Money</th>
+<th class="table-header text-center">Has Wedding Cake</th>
+<th class="table-header"></th>
+</tr>
+</thead>
+<tbody id="guest-table-body" class="divide-y divide-[var(--subtle-border)]">
+                            <!-- 載入中的提示 -->
+                            <tr id="loading-row">
+                                <td colspan="5" class="table-cell text-center py-8">
+                                    <span class="material-symbols-outlined animate-spin text-2xl text-[var(--primary-color)]">refresh</span>
+                                    <div class="mt-2 text-gray-500">載入賓客資料中...</div>
+                                </td>
+                            </tr>
+                        </tbody>
+</table>
+</div>
+
+<!-- 分頁資訊和導航 -->
+<div class="px-6 py-4 border-t border-[var(--subtle-border)] bg-gray-50">
+<div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+<!-- 資訊顯示 -->
+<div class="text-sm text-gray-600">
+<span id="pagination-info">顯示第 1-20 筆，共 0 筆賓客</span>
+</div>
+
+<!-- 分頁導航 -->
+<div class="flex items-center space-x-1">
+<!-- 上一頁按鈕 -->
+<button id="prev-page" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+<span class="material-symbols-outlined text-lg">chevron_left</span>
+</button>
+
+<!-- 頁碼按鈕容器 -->
+<div id="page-numbers" class="flex space-x-1">
+<!-- 頁碼按鈕會動態生成 -->
+</div>
+
+<!-- 下一頁按鈕 -->
+<button id="next-page" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+</main>
+</div>
+</div>
+
+<script>
+    // Google Apps Script URL 從配置文件載入
+    const GOOGLE_SCRIPT_READ_URL = window.CONFIG?.GOOGLE_SCRIPT_URL || (() => { alert('請先設定 config.js 配置文件！'); return ''; })();
+
+    let guestData = []; // 全部賓客資料
+    let filteredData = []; // 搜尋過濾後的資料
+    let currentSearchTerm = ''; // 目前的搜尋關鍵字
+    
+    // 分頁變數
+    const itemsPerPage = 20;
+    let currentPage = 1;
+
+    // 載入全部賓客資料 - 使用 JSONP
+    function loadGuestData() {
+        // 清理之前的 JSONP script 標籤
+        const oldScript = document.querySelector('script[data-jsonp="guestlist"]');
+        if (oldScript) {
+            oldScript.remove();
+        }
+
+        // 設定全域回調函數
+        window.handleGuestData = function(response) {
+            console.log('JSONP 載入全部資料成功:', response);
+            
+            // 檢查是否有錯誤或者是分頁資料格式
+            if (response.error) {
+                console.error('伺服器錯誤:', response.error);
+                document.getElementById('guest-table-body').innerHTML = `
+                    <tr>
+                        <td colspan="5" class="table-cell text-center py-8">
+                            <span class="material-symbols-outlined text-2xl text-red-500">error</span>
+                            <div class="mt-2 text-red-500">載入資料失敗：${response.message || '未知錯誤'}</div>
+                            <button onclick="loadGuestData()" class="btn-primary mt-2">
+                                <span class="material-symbols-outlined">refresh</span> 重新載入
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            // 判斷是分頁格式還是原本的陣列格式
+            if (response.data && Array.isArray(response.data)) {
+                // 新的分頁格式，但我們取所有頁面的資料
+                guestData = response.data;
+            } else if (Array.isArray(response)) {
+                // 原本的陣列格式
+                guestData = response;
+            } else {
+                console.error('未知的資料格式:', response);
+                guestData = [];
+            }
+            
+            // 初始化篩選資料
+            filteredData = [...guestData];
+            
+            // 如果有搜尋關鍵字，進行篩選
+            if (currentSearchTerm) {
+                filterGuests(currentSearchTerm);
+            } else {
+                // 更新分頁顯示
+                updatePaginationDisplay();
+                renderGuestTable();
+            }
+        };
+
+        // 創建 JSONP script 標籤，不要分頁參數，取得全部資料
+        const script = document.createElement('script');
+        script.setAttribute('data-jsonp', 'guestlist');
+        
+        const params = new URLSearchParams({
+            callback: 'handleGuestData',
+            limit: 999999, // 要求很大的數量，確保取得所有資料
+            _t: Date.now()
+        });
+        
+        script.src = `${GOOGLE_SCRIPT_READ_URL}?${params.toString()}`;
+        
+        // 錯誤處理
+        script.onerror = function() {
+            console.error('JSONP 請求失敗');
+            document.getElementById('guest-table-body').innerHTML = `
+                <tr>
+                    <td colspan="5" class="table-cell text-center py-8">
+                        <span class="material-symbols-outlined text-2xl text-red-500">error</span>
+                        <div class="mt-2 text-red-500">網路連接失敗</div>
+                        <button onclick="loadGuestData()" class="btn-primary mt-2">
+                            <span class="material-symbols-outlined">refresh</span> 重新載入
+                        </button>
+                    </td>
+                </tr>
+            `;
+        };
+
+        // 添加到頁面
+        document.head.appendChild(script);
+        
+        console.log('發送一次性載入全部資料 JSONP 請求:', script.src);
+    }
+
+    // 更新分頁顯示（基於本地資料）
+    function updatePaginationDisplay() {
+        updatePaginationInfo();
+        updatePaginationButtons();
+    }
+
+    // 更新分頁資訊顯示
+    function updatePaginationInfo() {
+        const totalRecords = filteredData.length;
+        const start = totalRecords === 0 ? 0 : ((currentPage - 1) * itemsPerPage) + 1;
+        const end = Math.min(currentPage * itemsPerPage, totalRecords);
+        
+        document.getElementById('pagination-info').textContent = 
+            `顯示第 ${start}-${end} 筆，共 ${totalRecords} 筆賓客`;
+    }
+
+    // 更新分頁按鈕
+    function updatePaginationButtons() {
+        const prevBtn = document.getElementById('prev-page');
+        const nextBtn = document.getElementById('next-page');
+        const pageNumbers = document.getElementById('page-numbers');
+        
+        const totalRecords = filteredData.length;
+        const totalPages = Math.ceil(totalRecords / itemsPerPage);
+        const hasPrevPage = currentPage > 1;
+        const hasNextPage = currentPage < totalPages;
+        
+        // 上一頁/下一頁按鈕狀態
+        prevBtn.disabled = !hasPrevPage;
+        nextBtn.disabled = !hasNextPage;
+        
+        // 生成頁碼按鈕
+        pageNumbers.innerHTML = '';
+        
+        // 計算顯示的頁碼範圍
+        const maxButtons = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+        let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+        
+        // 調整起始頁面
+        if (endPage - startPage + 1 < maxButtons) {
+            startPage = Math.max(1, endPage - maxButtons + 1);
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+            const button = document.createElement('button');
+            button.textContent = i;
+            button.className = `px-3 py-2 text-sm font-medium border ${
+                i === currentPage 
+                    ? 'bg-[var(--primary-color)] text-white border-[var(--primary-color)]' 
+                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+            }`;
+            button.onclick = () => goToPage(i);
+            pageNumbers.appendChild(button);
+        }
+    }
+
+    // 跳轉到指定頁面（前端分頁）
+    function goToPage(page) {
+        const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+        if (page >= 1 && page <= totalPages) {
+            currentPage = page;
+            updatePaginationDisplay();
+            renderGuestTable();
+        }
+    }
+
+    // 渲染賓客表格
+    function renderGuestTable() {
+        const tbody = document.getElementById('guest-table-body');
+        
+        if (filteredData.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="table-cell text-center py-8">
+                        <span class="material-symbols-outlined text-2xl text-gray-400">person_off</span>
+                        <div class="mt-2 text-gray-500">
+                            ${currentSearchTerm ? '沒有符合搜尋條件的賓客' : '尚無賓客資料'}
+                        </div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        // 計算當前頁面要顯示的資料
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const currentPageData = filteredData.slice(startIndex, endIndex);
+
+        tbody.innerHTML = currentPageData.map(guest => {
+            const isCheckedIn = guest.checkedIn;
+            const rowClass = isCheckedIn ? 'checked-in-row' : 'unchecked-row';
+            const buttonClass = isCheckedIn ? 'btn-primary bg-green-200 text-green-800 hover:bg-green-300' : 'btn-primary';
+            const buttonText = isCheckedIn ? '<span class="magic-wand-icon">edit</span> 已報到' : '<span class="magic-wand-icon">login</span> 未報到';
+            const buttonAction = isCheckedIn ? `viewGuestDetails('${guest.serialNumber}')` : `goToCheckin('${guest.serialNumber}', '${guest.guestName}', ${guest.collectMoney}, ${guest.hasCake})`;
+
+            return `
+                <tr class="transition-colors ${rowClass}">
+                    <td class="table-cell">${guest.serialNumber}</td>
+                    <td class="table-cell font-medium">${guest.guestName}</td>
+                    <td class="table-cell text-center">
+                        <input ${guest.collectMoney ? 'checked' : ''}
+                               class="checkbox-custom ${isCheckedIn ? 'border-green-300' : ''}"
+                               type="checkbox" disabled/>
+                    </td>
+                    <td class="table-cell text-center">
+                        <input ${guest.hasCake ? 'checked' : ''}
+                               class="checkbox-custom ${isCheckedIn ? 'border-green-300' : ''}"
+                               type="checkbox" disabled/>
+                    </td>
+                    <td class="table-cell text-right">
+                        <button class="${buttonClass}" onclick="${buttonAction}">
+                            ${buttonText}
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    // 查看賓客詳細資訊
+    function viewGuestDetails(serialNumber) {
+        const guest = guestData.find(g => g.serialNumber == serialNumber);
+        if (guest) {
+            const details = `
+賓客編號: ${guest.serialNumber}
+姓名: ${guest.guestName}
+收禮金: ${guest.collectMoney ? '是' : '否'}
+${guest.collectMoney && guest.giftAmount ? `禮金金額: ${guest.giftAmount}` : ''}
+有喜餅: ${guest.hasCake ? '是' : '否'}
+發放喜餅: ${guest.cakeGiven ? '是' : '否'}
+報到時間: ${guest.timestamp ? new Date(guest.timestamp).toLocaleString('zh-TW') : '尚未報到'}
+            `;
+            alert(details);
+        }
+    }
+
+    // 跳轉到報到畫面
+    function goToCheckin(serialNumber, guestName, collectMoney, hasCake) {
+        // 使用 URL 參數傳遞賓客資訊到報到畫面
+        const params = new URLSearchParams({
+            sn: serialNumber,
+            name: encodeURIComponent(guestName),
+            collectMoney: collectMoney,
+            hasCake: hasCake
+        });
+        window.location.href = `checkin.html?${params.toString()}`;
+    }
+
+    // 刷新資料
+    function refreshData() {
+        document.getElementById('guest-table-body').innerHTML = `
+            <tr id="loading-row">
+                <td colspan="5" class="table-cell text-center py-8">
+                    <span class="material-symbols-outlined animate-spin text-2xl text-[var(--primary-color)]">refresh</span>
+                    <div class="mt-2 text-gray-500">重新載入資料中...</div>
+                </td>
+            </tr>
+        `;
+        loadGuestData();
+    }
+
+    // 搜索功能（本地搜尋 + 前端分頁）
+    function filterGuests(searchTerm) {
+        currentSearchTerm = searchTerm.trim();
+        
+        if (currentSearchTerm === '') {
+            // 沒有搜尋條件，顯示全部資料
+            filteredData = [...guestData];
+        } else {
+            // 有搜尋條件，過濾資料
+            const searchLower = currentSearchTerm.toLowerCase();
+            filteredData = guestData.filter(guest => {
+                const matchesSerial = guest.serialNumber.toString().toLowerCase().includes(searchLower);
+                const matchesName = guest.guestName.toString().toLowerCase().includes(searchLower);
+                return matchesSerial || matchesName;
+            });
+        }
+        
+        // 重置到第一頁
+        currentPage = 1;
+        
+        // 更新顯示
+        updatePaginationDisplay();
+        renderGuestTable();
+        
+        // 顯示/隱藏清除按鈕
+        const clearButton = document.getElementById('clear-search');
+        if (currentSearchTerm) {
+            clearButton.classList.remove('hidden');
+        } else {
+            clearButton.classList.add('hidden');
+        }
+    }
+
+    // 清除搜索
+    function clearSearch() {
+        const searchInput = document.getElementById('search-input');
+        searchInput.value = '';
+        filterGuests('');
+    }
+
+    // 添加刷新按鈕功能
+    document.addEventListener('DOMContentLoaded', function() {
+        // 搜索功能事件綁定
+        const searchInput = document.getElementById('search-input');
+        const clearButton = document.getElementById('clear-search');
+        
+        // 即時搜索
+        searchInput.addEventListener('input', function(e) {
+            filterGuests(e.target.value);
+        });
+        
+        // 清除搜索
+        clearButton.addEventListener('click', clearSearch);
+        
+        // Enter 鍵搜索
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                filterGuests(e.target.value);
+            }
+        });
+
+        // 添加刷新按鈕到標題旁邊
+        const headerDiv = document.querySelector('main .flex.items-center.justify-between');
+        const refreshButton = document.createElement('button');
+        refreshButton.className = 'btn-primary ml-4';
+        refreshButton.innerHTML = '<span class="material-symbols-outlined">refresh</span> 刷新資料';
+        refreshButton.onclick = refreshData;
+
+        const addGuestButton = headerDiv.querySelector('button');
+        addGuestButton.parentNode.insertBefore(refreshButton, addGuestButton);
+
+        // 分頁按鈕事件
+        document.getElementById('prev-page').addEventListener('click', function() {
+            if (currentPage > 1) {
+                goToPage(currentPage - 1);
+            }
+        });
+
+        document.getElementById('next-page').addEventListener('click', function() {
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            if (currentPage < totalPages) {
+                goToPage(currentPage + 1);
+            }
+        });
+
+        // 檢查是否需要強制刷新 (從報到畫面返回時)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('refresh')) {
+            // 清除 URL 參數並強制刷新資料
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        // 初始載入全部資料
+        loadGuestData();
+
+        // 每30秒自動刷新資料
+        setInterval(() => loadGuestData(), 30000);
+    });
+</script>
+
+</body></html>
