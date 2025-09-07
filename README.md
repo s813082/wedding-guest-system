@@ -38,11 +38,12 @@
 ### 📊 賓客清單  
 **檔案**: `guestlist.html`
 
-✅ **即時更新** - 30秒自動刷新最新狀態  
+✅ **智能快取** - 完整資料載入，localStorage 持久化  
 ✅ **極速搜尋** - 序號/姓名毫秒級搜尋響應  
 ✅ **智能分頁** - 每頁20筆，流暢分頁體驗  
 ✅ **視覺化狀態** - 綠色標示已報到賓客  
 ✅ **點擊報到** - 直接跳轉到報到表單  
+✅ **代碼品質** - 遵循 Linus 原則，消除特殊情況  
 
 </td>
 </tr>
@@ -335,7 +336,8 @@ window.CONFIG = {
 <tr><td width="30%"><strong>功能</strong></td><td width="30%"><strong>響應時間</strong></td><td><strong>說明</strong></td></tr>
 <tr><td>🔍 <strong>即時搜尋</strong></td><td>&lt; 10ms</td><td>本地資料搜尋，毫秒級響應</td></tr>
 <tr><td>📄 <strong>分頁切換</strong></td><td>&lt; 5ms</td><td>前端分頁，無需伺服器請求</td></tr>
-<tr><td>📊 <strong>資料載入</strong></td><td>~2.2s</td><td>一次載入全部資料，後續無延遲</td></tr>
+<tr><td>📊 <strong>首次載入</strong></td><td>3-5s</td><td>自動載入全部資料（如150筆），智能快取</td></tr>
+<tr><td>🔄 <strong>頁面跳轉</strong></td><td>0延遲</td><td>使用 localStorage 持久化快取</td></tr>
 <tr><td>💾 <strong>資料提交</strong></td><td>1-3s</td><td>視網路狀況而定</td></tr>
 </table>
 

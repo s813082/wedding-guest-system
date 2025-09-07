@@ -139,6 +139,30 @@
 </div>
 </div>
 </div>
+
+<!-- 家庭成員顯示區域 -->
+<div id="family-info-section" class="hidden bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+    <h3 class="text-lg font-semibold text-blue-800 mb-3 flex items-center">
+        <span class="material-symbols-outlined mr-2">family_restroom</span>
+        家庭成員清單
+    </h3>
+    <p class="text-sm text-blue-600 mb-3">
+        ⚡ <strong>一人報到 = 全家報到</strong> - 此賓客報到後，以下家庭成員將同時完成報到
+    </p>
+    <div id="family-members-list" class="space-y-2">
+        <!-- 家庭成員將動態載入到這裡 -->
+    </div>
+    <div class="mt-4 pt-4 border-t border-blue-200">
+        <div class="flex justify-between items-center">
+            <span class="text-sm font-medium text-blue-800">快速家庭報到</span>
+            <button id="family-checkin-btn" type="button" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+                <span class="material-symbols-outlined text-lg">group</span>
+                全家報到
+            </button>
+        </div>
+        <p class="text-xs text-blue-600 mt-1">點擊「全家報到」可一次完成所有家庭成員的報到</p>
+    </div>
+</div>
 <div class="space-y-4 pt-4 border-t border-gray-200">
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
 <div class="relative flex items-start">
@@ -178,6 +202,18 @@
 </div>
 </div>
 </div>
+<!-- 家庭成員清單（在check-in按鈕上方） -->
+<div id="family-members-summary" class="hidden mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+    <div class="flex items-center mb-3">
+        <span class="material-symbols-outlined text-blue-600 mr-2">group</span>
+        <h4 class="text-sm font-semibold text-blue-800">同一家庭成員</h4>
+    </div>
+    <div id="family-members-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <!-- 家庭成員將動態載入到這裡 -->
+    </div>
+    <p class="text-xs text-blue-600 mt-2">💡 此賓客報到後，所有家庭成員將同時完成報到</p>
+</div>
+
 <div class="pt-6 text-center">
 <button class="btn-primary inline-flex items-center gap-2" type="submit">
 <span class="magic-wand-icon text-lg">auto_fix_high</span> Check-in Successful
@@ -192,7 +228,7 @@
 <script>
     // Google Apps Script URL 從配置文件載入
     const GOOGLE_SCRIPT_URL = window.CONFIG?.GOOGLE_SCRIPT_URL || alert('請先設定 config.js 配置文件！');
-    
+
     // 回到賓客清單頁面
     function goBack() {
         // 添加時間戳確保頁面重新載入並刷新資料
@@ -206,12 +242,38 @@
         const guestName = urlParams.get('name');
         const collectMoney = urlParams.get('collectMoney') === 'true';
         const hasCake = urlParams.get('hasCake') === 'true';
+        const familyId = urlParams.get('familyId');
+        const familyMembersJson = urlParams.get('familyMembers');
 
         if (serialNumber) {
             document.getElementById('serial-number').value = serialNumber;
         }
         if (guestName) {
             document.getElementById('guest-name').value = decodeURIComponent(guestName);
+
+            // 除錯：顯示所有接收到的參數
+            console.log('📋 報到畫面接收到的 URL 參數:', {
+                serialNumber: serialNumber,
+                guestName: guestName ? decodeURIComponent(guestName) : null,
+                collectMoney: collectMoney,
+                hasCake: hasCake,
+                familyId: familyId,
+                familyMembersJson: familyMembersJson ? '有資料' : '無資料',
+                allParams: Object.fromEntries(urlParams.entries())
+            });
+
+            // 如果有家庭成員資訊，直接顯示，不需要再發請求
+            if (familyId && familyMembersJson) {
+                try {
+                    const familyMembers = JSON.parse(decodeURIComponent(familyMembersJson));
+                    console.log('✅ 成功解析家庭成員資訊:', familyMembers);
+                    displayFamilyMembersFromURL(familyMembers);
+                } catch (error) {
+                    console.log('❌ 解析家庭成員資訊失敗:', error);
+                }
+            } else {
+                console.log('ℹ️  無家庭成員資訊 - familyId:', familyId, 'familyMembersJson:', familyMembersJson);
+            }
         }
         if (collectMoney) {
             document.getElementById('collect-money').checked = true;
@@ -257,7 +319,7 @@
                     hasCake: formData.get('has-cake') === 'on',
                     cakeGiven: formData.get('cake-given') === 'on'
                 };
-                
+
                 // 調試：顯示要傳送的資料
                 console.log('準備傳送的資料:', data);
                 console.log('表單原始資料:', {
@@ -280,14 +342,24 @@
 
                 // no-cors 模式無法讀取回應，假設提交成功
                 console.log('資料已提交 (no-cors 模式)');
-                
+
                 // 成功提示
                 button.innerHTML = '<span class="magic-wand-icon text-lg">check_circle</span> 簽到成功！';
                 button.style.backgroundColor = '#22c55e';
 
-                // 2秒後自動跳轉回賓客清單
+                // 2秒後自動跳轉回賓客清單，傳遞報到資訊用於本地更新
                 setTimeout(() => {
-                    window.location.href = 'guestlist.html?refresh=' + Date.now();
+                    const checkInParams = new URLSearchParams({
+                        refresh: Date.now(),
+                        localUpdate: 'true',
+                        sn: data.serialNumber,
+                        name: encodeURIComponent(data.guestName),
+                        collectMoney: data.collectMoney || false,
+                        giftAmount: data.giftAmount || 0,
+                        hasCake: data.hasCake || false,
+                        cakeGiven: data.cakeGiven || false
+                    });
+                    window.location.href = `guestlist.html?${checkInParams.toString()}`;
                 }, 2000);
 
             } catch (error) {
@@ -305,6 +377,264 @@
 
         // Initial state
         toggleGiftAmount();
+    });
+
+    // 簡單查詢家庭成員並在check-in按鈕上方顯示 (使用JSONP)
+    function loadFamilyMembersSimple(guestName) {
+        if (!guestName || guestName.trim() === '') {
+            hideFamilyMembersSimple();
+            return;
+        }
+
+        // 清理之前的 JSONP script 標籤
+        const oldScript = document.querySelector('script[data-jsonp="family-info"]');
+        if (oldScript) {
+            oldScript.remove();
+        }
+
+        // 設定全域回調函數
+        window.handleFamilyInfo = function(response) {
+            console.log('家庭資訊 JSONP 回應:', response);
+
+            if (response.hasFamilyInfo && response.familyMembers && response.familyMembers.length > 1) {
+                displayFamilyMembersSimple(response.familyMembers);
+            } else {
+                hideFamilyMembersSimple();
+            }
+        };
+
+        // 創建 JSONP script 標籤
+        const script = document.createElement('script');
+        script.setAttribute('data-jsonp', 'family-info');
+
+        const params = new URLSearchParams({
+            action: 'getFamilyInfo',
+            guestName: guestName,
+            callback: 'handleFamilyInfo',
+            _t: Date.now()
+        });
+
+        script.src = `${GOOGLE_SCRIPT_URL}?${params.toString()}`;
+
+        // 錯誤處理
+        script.onerror = function() {
+            console.log('JSONP 家庭資訊查詢失敗');
+            hideFamilyMembersSimple();
+        };
+
+        // 添加到頁面
+        document.head.appendChild(script);
+
+        console.log('發送家庭資訊 JSONP 請求:', script.src);
+    }
+
+    // 直接從 URL 參數顯示家庭成員（無需網路請求）
+    function displayFamilyMembersFromURL(familyMembers) {
+        const summarySection = document.getElementById('family-members-summary');
+        const membersGrid = document.getElementById('family-members-grid');
+
+        if (!familyMembers || familyMembers.length <= 1) {
+            hideFamilyMembersSimple();
+            return;
+        }
+
+        // 生成家庭成員網格
+        membersGrid.innerHTML = familyMembers.map(member => `
+            <div class="flex items-center space-x-2 text-sm">
+                <span class="material-symbols-outlined text-blue-600" style="font-size: 16px;">person</span>
+                <span class="text-gray-700">${member.memberName}</span>
+                <span class="ml-auto ${member.isCheckedIn ? 'text-green-600' : 'text-gray-400'} text-xs">
+                    ${member.isCheckedIn ? '✓' : '○'}
+                </span>
+            </div>
+        `).join('');
+
+        // 顯示家庭資訊區域
+        summarySection.classList.remove('hidden');
+        console.log('家庭成員資訊已從 URL 參數直接載入，無需額外請求');
+    }
+
+    // 在check-in按鈕上方顯示家庭成員（JSONP 版本 - 保留備用）
+    function displayFamilyMembersSimple(familyMembers) {
+        displayFamilyMembersFromURL(familyMembers);
+    }
+
+    // 隱藏家庭成員簡單清單
+    function hideFamilyMembersSimple() {
+        const summarySection = document.getElementById('family-members-summary');
+        summarySection.classList.add('hidden');
+    }
+
+    // 查詢家庭成員資訊（簡化版）
+    async function loadFamilyInfo(guestName) {
+        if (!guestName || guestName.trim() === '') return;
+
+        try {
+            // 調用 Google Apps Script 查詢家庭資訊
+            const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getFamilyInfo&guestName=${encodeURIComponent(guestName)}`, {
+                method: 'GET',
+                mode: 'cors'
+            });
+
+            if (!response.ok) {
+                console.log('無法查詢家庭資訊');
+                hideFamilyInfo();
+                return;
+            }
+
+            const familyInfo = await response.json();
+
+            if (familyInfo.hasFamilyInfo && familyInfo.familyMembers && familyInfo.familyMembers.length > 1) {
+                displayFamilyMembers(familyInfo.familyMembers);
+            } else {
+                hideFamilyInfo();
+            }
+
+        } catch (error) {
+            console.log('查詢家庭資訊失敗:', error);
+            hideFamilyInfo();
+        }
+    }
+
+    // 顯示家庭成員清單
+    function displayFamilyMembers(familyMembers) {
+        const familySection = document.getElementById('family-info-section');
+        const membersList = document.getElementById('family-members-list');
+        const familyCheckinBtn = document.getElementById('family-checkin-btn');
+
+        if (!familyMembers || familyMembers.length === 0) {
+            hideFamilyInfo();
+            return;
+        }
+
+        // 儲存家庭成員資料供快速報到使用
+        window.currentFamilyMembers = familyMembers;
+
+        // 生成家庭成員清單HTML（簡化版）
+        membersList.innerHTML = familyMembers.map(member => `
+            <div class="flex items-center justify-between bg-white p-3 rounded border">
+                <div class="flex items-center space-x-3">
+                    <span class="material-symbols-outlined text-blue-600">person</span>
+                    <div>
+                        <div class="font-medium text-gray-900">${member.memberName}</div>
+                        <div class="text-sm text-gray-500">家庭成員</div>
+                    </div>
+                </div>
+                <div class="text-sm">
+                    ${member.isCheckedIn ?
+                        '<span class="bg-green-100 text-green-800 px-2 py-1 rounded-full">已報到</span>' :
+                        '<span class="bg-gray-100 text-gray-600 px-2 py-1 rounded-full">未報到</span>'
+                    }
+                </div>
+            </div>
+        `).join('');
+
+        // 檢查是否有未報到的成員
+        const hasUncheckedMembers = familyMembers.some(member => !member.isCheckedIn);
+
+        if (hasUncheckedMembers) {
+            familyCheckinBtn.disabled = false;
+            familyCheckinBtn.innerHTML = '<span class="material-symbols-outlined text-lg">group</span> 全家報到';
+            familyCheckinBtn.className = 'bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors';
+        } else {
+            familyCheckinBtn.disabled = true;
+            familyCheckinBtn.innerHTML = '<span class="material-symbols-outlined text-lg">check_circle</span> 全家已報到';
+            familyCheckinBtn.className = 'bg-gray-400 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 cursor-not-allowed';
+        }
+
+        // 顯示家庭資訊區域
+        familySection.classList.remove('hidden');
+    }
+
+    // 隱藏家庭資訊
+    function hideFamilyInfo() {
+        const familySection = document.getElementById('family-info-section');
+        familySection.classList.add('hidden');
+    }
+
+    // 快速家庭報到功能
+    async function processFamilyCheckIn() {
+        if (!window.currentFamilyMembers) {
+            alert('沒有家庭成員資訊');
+            return;
+        }
+
+        const familyCheckinBtn = document.getElementById('family-checkin-btn');
+        const originalText = familyCheckinBtn.innerHTML;
+
+        // 取得表單資料
+        const formData = new FormData(document.querySelector('form'));
+        const data = {
+            guestName: formData.get('guest-name'),
+            serialNumber: formData.get('serial-number'),
+            collectMoney: formData.get('collect-money') === 'on',
+            giftAmount: parseInt(formData.get('gift-amount')) || 0,
+            hasCake: formData.get('has-cake') === 'on',
+            cakeGiven: formData.get('cake-given') === 'on'
+        };
+
+        // 更新按鈕狀態
+        familyCheckinBtn.innerHTML = '<span class="material-symbols-outlined text-lg animate-spin">hourglass_top</span> 處理中...';
+        familyCheckinBtn.disabled = true;
+
+        try {
+            const response = await fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+
+            // 成功提示
+            familyCheckinBtn.innerHTML = '<span class="material-symbols-outlined text-lg">check_circle</span> 全家報到成功！';
+            familyCheckinBtn.className = 'bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2';
+
+            // 2秒後跳轉回賓客清單
+            setTimeout(() => {
+                window.location.href = 'guestlist.html?refresh=' + Date.now();
+            }, 2000);
+
+        } catch (error) {
+            console.error('快速家庭報到失敗:', error);
+            familyCheckinBtn.innerHTML = '<span class="material-symbols-outlined text-lg">error</span> 報到失敗';
+            familyCheckinBtn.className = 'bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2';
+
+            // 3秒後恢復原狀態
+            setTimeout(() => {
+                familyCheckinBtn.innerHTML = originalText;
+                familyCheckinBtn.className = 'bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors';
+                familyCheckinBtn.disabled = false;
+            }, 3000);
+        }
+    }
+
+    // 添加事件監聽器
+    document.addEventListener('DOMContentLoaded', function() {
+        const guestNameInput = document.getElementById('guest-name');
+        const familyCheckinBtn = document.getElementById('family-checkin-btn');
+        let inputTimer;
+
+        // 賓客姓名輸入監聽器（已優化：家庭資訊從 URL 直接載入，不需要即時查詢）
+        // guestNameInput.addEventListener('input', function() {
+        //     const guestName = this.value.trim();
+        //
+        //     // 清除之前的計時器
+        //     clearTimeout(inputTimer);
+        //
+        //     // 500ms 後執行查詢（防止頻繁查詢）
+        //     inputTimer = setTimeout(() => {
+        //         if (guestName) {
+        //             loadFamilyMembersSimple(guestName);
+        //         } else {
+        //             hideFamilyMembersSimple();
+        //         }
+        //     }, 500);
+        // });
+
+        // 快速家庭報到按鈕監聽器
+        familyCheckinBtn.addEventListener('click', processFamilyCheckIn);
     });
 </script>
 
