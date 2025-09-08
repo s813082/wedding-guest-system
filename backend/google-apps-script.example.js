@@ -324,6 +324,7 @@ function processSingleCheckIn(spreadsheetId, guestSheetName, data) {
     sheet.getRange(targetRowIndex, 5).setValue(data.giftAmount || 0);
     sheet.getRange(targetRowIndex, 6).setValue(data.hasCake);
     sheet.getRange(targetRowIndex, 7).setValue(data.cakeGiven || false);
+    sheet.getRange(targetRowIndex, 9).setValue(data.remarks || ''); // I 欄備註
   } else {
     // 新增一行
     const newRowData = [
@@ -333,7 +334,9 @@ function processSingleCheckIn(spreadsheetId, guestSheetName, data) {
       data.collectMoney,
       data.giftAmount || 0,
       data.hasCake,
-      data.cakeGiven || false
+      data.cakeGiven || false,
+      data.familyId || '', // H 欄家庭編號
+      data.remarks || ''   // I 欄備註
     ];
     sheet.appendRow(newRowData);
   }
@@ -346,7 +349,7 @@ function processSingleCheckIn(spreadsheetId, guestSheetName, data) {
 
 /**
  * 處理家庭批量報到（一人報到=全家報到）
- * 邏輯：禮金和喜餅只記錄在報到操作者身上，其他家人只更新報到時間
+ * 邏輯：禮金、喜餅和備註只記錄在報到操作者身上，其他家人只更新報到時間
  */
 function processFamilyCheckIn(spreadsheetId, guestSheetName, familySheetName, data) {
   try {
@@ -377,13 +380,14 @@ function processFamilyCheckIn(spreadsheetId, guestSheetName, familySheetName, da
     let updatedCount = 0;
     const familyMemberNames = [];
     
-    // 2. 更新報到操作者的完整資訊（包含禮金和喜餅）
+    // 2. 更新報到操作者的完整資訊（包含禮金、喜餅和備註）
     if (checkInPersonRowIndex > 0) {
       guestSheet.getRange(checkInPersonRowIndex, 1).setValue(formattedTime); // 時間
       guestSheet.getRange(checkInPersonRowIndex, 4).setValue(data.collectMoney || false); // 收禮金
       guestSheet.getRange(checkInPersonRowIndex, 5).setValue(data.giftAmount || 0); // 金額
       guestSheet.getRange(checkInPersonRowIndex, 6).setValue(data.hasCake || false); // 有喜餅
       guestSheet.getRange(checkInPersonRowIndex, 7).setValue(data.cakeGiven || false); // 發喜餅
+      guestSheet.getRange(checkInPersonRowIndex, 9).setValue(data.remarks || ''); // I 欄備註
       updatedCount++;
     }
     
